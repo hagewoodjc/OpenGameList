@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using OpenGameList.Data;
 
-namespace OpenGameListWebApp_Chapter01.Data.Migrations
+namespace OpenGameList.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
     [Migration("20170318210607_OpenIddict2")]

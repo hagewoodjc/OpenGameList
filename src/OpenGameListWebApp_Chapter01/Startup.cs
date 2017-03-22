@@ -85,6 +85,32 @@ namespace OpenGameList
             // Add a custom Jwt Provider to generate Tokens 
             app.UseJwtProvider();
 
+            // Add the AspNetCore.Identity middleware (required for external auth providers)
+            // IMPORTANT:: This must be placed *BEFORE* OpenIddict and any external provider's middleware.
+            app.UseIdentity();
+
+            // Add external authentication middleware below
+            // To configure them please se: http://go.microsoft.com/fwlink/?LinkID=532715
+            app.UseFacebookAuthentication(new FacebookOptions()
+            {
+                AutomaticAuthenticate = true,
+                AutomaticChallenge = true,
+                AppId = Configuration["Authentication:Facebook:AppId"],
+                AppSecret = Configuration["Authentication:Facebook:AppSecret"],
+                CallbackPath = "/signin-facebook",
+                Scope = { "email" }
+            });
+
+            app.UseGoogleAuthentication(new GoogleOptions()
+            {
+                AutomaticAuthenticate = true,
+                AutomaticChallenge = true,
+                ClientId = Configuration["Authentication:Google:ClientId"],
+                ClientSecret = Configuration["Authentication:Google:ClientSecret"],
+                CallbackPath = "/signin-google",
+                Scope = { "email "}
+            });
+
             // Add the Jwt Bearer Header Authentication to validate Tokens
             app.UseJwtBearerAuthentication(new JwtBearerOptions()
             {
@@ -95,6 +121,7 @@ namespace OpenGameList
                 {
                     IssuerSigningKey = JwtProvider.SecurityKey,
                     ValidateIssuerSigningKey = true,
+                    ValidIssuer = JwtProvider.Issuer,
                     ValidateIssuer = false,
                     ValidateAudience = false
                 }

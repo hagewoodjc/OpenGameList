@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Identity;
 using OpenGameList.ViewModels;
 using Newtonsoft.Json;
 using OpenGameList.Data;
+using OpenGameList.Data.Users;
 using Nelibur.ObjectMapper;
 using OpenGameList.Data.Items;
 using Microsoft.AspNetCore.Authorization;
@@ -15,15 +17,12 @@ using System.Security.Claims;
 
 namespace OpenGameList.Controllers
 {
-    [Route("api/[controller]")]
-    public class ItemsController : Controller
+    //Route?    
+    public class ItemsController : BaseController
     {
-        private ApplicationDbContext DbContext;
-
-        public ItemsController(ApplicationDbContext context)
-        {
-            DbContext = context;
-        }
+        public ItemsController(ApplicationDbContext context, SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager)
+            : base(context, signInManager, userManager)
+        { }
 
         #region RESTful Conventions
 
@@ -51,7 +50,7 @@ namespace OpenGameList.Controllers
             var item = DbContext.Items.Where(i => i.Id == id).FirstOrDefault();
 
             if (item != null)
-                return new JsonResult(TinyMapper.Map<ItemViewModel>(item), DefaultJsonSettings);
+                return new JsonResult(TinyMapper.Map<ItemViewModel>(item), DefaultSettings);
             else
                 return NotFound(new
                 {
@@ -61,7 +60,7 @@ namespace OpenGameList.Controllers
 
         [HttpPost()]
         [Authorize]
-        public IActionResult Add([FromBody] ItemViewModel ivm)
+        public async Task<IActionResult> Add([FromBody] ItemViewModel ivm)
         {
             if(ivm != null)
             {
@@ -72,13 +71,13 @@ namespace OpenGameList.Controllers
                 item.CreateDate = item.LastModifiedDated = DateTime.Now;
 
                 // TODO: replace the following with the current user's id when authentication will be available
-                item.UserId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                item.UserId = await GetCurrentUserId();
 
                 // add the new item
                 DbContext.Items.Add(item);
                 DbContext.SaveChanges();
 
-                return new JsonResult(TinyMapper.Map<ItemViewModel>(item), DefaultJsonSettings);
+                return new JsonResult(TinyMapper.Map<ItemViewModel>(item), DefaultSettings);
             }
 
             return new StatusCodeResult(500);
@@ -109,7 +108,7 @@ namespace OpenGameList.Controllers
 
                     DbContext.SaveChanges();
 
-                    return new JsonResult(TinyMapper.Map<ItemViewModel>(item), DefaultJsonSettings);
+                    return new JsonResult(TinyMapper.Map<ItemViewModel>(item), DefaultSettings);
                 }                
             }
 
@@ -162,7 +161,7 @@ namespace OpenGameList.Controllers
                 n = MaxNumberOfItems;
 
             var items = DbContext.Items.OrderByDescending(i => i.CreateDate).Take(n).ToArray();
-            return new JsonResult(ToItemViewModelList(items), DefaultJsonSettings);
+            return new JsonResult(ToItemViewModelList(items), DefaultSettings);
         }
 
         /// <summary>
@@ -188,7 +187,7 @@ namespace OpenGameList.Controllers
                 n = MaxNumberOfItems;
 
             var items = DbContext.Items.OrderByDescending(i => i.ViewCount).Take(n).ToArray();
-            return new JsonResult(ToItemViewModelList(items), DefaultJsonSettings);
+            return new JsonResult(ToItemViewModelList(items), DefaultSettings);
         }
 
         /// <summary>
@@ -214,7 +213,7 @@ namespace OpenGameList.Controllers
                 n = MaxNumberOfItems;
 
             var items = DbContext.Items.OrderBy(i => Guid.NewGuid()).Take(n).ToArray();
-            return new JsonResult(ToItemViewModelList(items), DefaultJsonSettings);
+            return new JsonResult(ToItemViewModelList(items), DefaultSettings);
         }
 
         #endregion
@@ -258,18 +257,6 @@ namespace OpenGameList.Controllers
                 });
             }
             return lst;
-        }
-
-        /// <summary> Returns a suitable JsonSerializerSetting object that can gbe used to generate the JsonResult return value for this Controller's methods. </summary>
-        private JsonSerializerSettings DefaultJsonSettings
-        {
-            get
-            {
-                return new JsonSerializerSettings()
-                {
-                    Formatting = Formatting.Indented
-                };
-            }
         }
 
         /// <summary> Returns the default number of items to retrieve when using the parameterless overlaods of the API methods retrieving item lists.  </summary>

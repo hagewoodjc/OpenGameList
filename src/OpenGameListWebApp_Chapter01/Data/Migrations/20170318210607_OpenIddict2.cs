@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace OpenGameListWebApp_Chapter01.Data.Migrations
+namespace OpenGameList.Data.Migrations
 {
     public partial class OpenIddict2 : Migration
     {

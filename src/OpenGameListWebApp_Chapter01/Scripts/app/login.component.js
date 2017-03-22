@@ -35,6 +35,7 @@ System.register(["@angular/core", "@angular/forms", "@angular/router", "./auth.s
                     this.title = "Login";
                     this.loginForm = null;
                     this.loginError = false;
+                    this.externalProviderWindow = null;
                     if (this.authService.isLoggedIn()) {
                         this.router.navigate([""]);
                     }
@@ -60,12 +61,24 @@ System.register(["@angular/core", "@angular/forms", "@angular/router", "./auth.s
                         _this.loginError = true;
                     });
                 };
+                LoginComponent.prototype.callExternalLogin = function (providerName) {
+                    var url = "api/Accounts/ExternalLogin/" + providerName;
+                    //minimalistic mobile device support
+                    var w = (screen.width >= 1050) ? 1050 : screen.width;
+                    var h = (screen.height >= 550) ? 550 : screen.height;
+                    var params = "toolbar=yes,scrollbars=yes,resizable=yes,width=" + w + ", height=" + h;
+                    // close previously opened windows (if any)
+                    if (this.externalProviderWindow) {
+                        this.externalProviderWindow.close();
+                    }
+                    this.externalProviderWindow = window.open(url, "ExternalProvider", params, false);
+                };
                 return LoginComponent;
             }());
             LoginComponent = __decorate([
                 core_1.Component({
                     selector: "login",
-                    template: "\n        <div class=\"login-container\">\n            <h2 class=\"form-login-heading\">Login</h2>\n            <div class=\"alert alert-danger\" role=\"alert\" *ngIf=\"loginError\">\n                <strong>Warning:</strong> Username or Password mismatch\n            </div>\n            <form class=\"form-login\" [formGroup]=\"loginForm\" (submit)=\"performLogin($event)\">\n                <input formControlName=\"username\" type=\"text\" class=\"form-control\" placeholder=\"Your username or e-mail address\" required autofocus />\n                <input formControlName=\"password\" type=\"password\" class=\"form-control\" placeholder=\"Your password\" required />\n                <div class=\"checkbox\">\n                    <label>\n                        <input type=\"checkbox\" value=\"remember-me\">Remember me\n                    </label>\n                </div>\n                <button class=\"btn btn-lg btn-primary btn-block\" type=\"submit\">Sign in</button>\n            </form>\n        </div>\n    "
+                    template: "\n        <div class=\"login-container\">\n            <h2 class=\"form-login-heading\">Login</h2>\n            <div class=\"alert alert-danger\" role=\"alert\" *ngIf=\"loginError\">\n                <strong>Warning:</strong> Username or Password mismatch\n            </div>\n            <form class=\"form-login\" [formGroup]=\"loginForm\" (submit)=\"performLogin($event)\">\n                <input formControlName=\"username\" type=\"text\" class=\"form-control\" placeholder=\"Your username or e-mail address\" required autofocus />\n                <input formControlName=\"password\" type=\"password\" class=\"form-control\" placeholder=\"Your password\" required />\n                <div class=\"checkbox\">\n                    <label>\n                        <input type=\"checkbox\" value=\"remember-me\">Remember me\n                    </label>\n                </div>\n                <button class=\"btn btn-lg btn-primary btn-block\" type=\"submit\">Sign in</button>\n            </form>\n            <button class=\"btn btn-sm btn-default btn-block\" type=\"submit\" (click)=\"callExternalLogin('Facebook')\">Login with Facebook</button>\n            <button class=\"btn btn-sm btn-default btn-block\" type=\"submit\" (click)=\"callExternalLogin('Google')\">Login with Google</button>\n        </div>\n    "
                 }),
                 __metadata("design:paramtypes", [forms_1.FormBuilder, router_1.Router, auth_service_1.AuthService])
             ], LoginComponent);

@@ -1,4 +1,4 @@
-System.register(["@angular/core", "@angular/http", "./auth.http"], function (exports_1, context_1) {
+System.register(["@angular/core", "@angular/http", "rxjs/Observable", "./auth.http"], function (exports_1, context_1) {
     "use strict";
     var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
         var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -10,7 +10,7 @@ System.register(["@angular/core", "@angular/http", "./auth.http"], function (exp
         if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
     };
     var __moduleName = context_1 && context_1.id;
-    var core_1, http_1, auth_http_1, AuthService;
+    var core_1, http_1, Observable_1, auth_http_1, AuthService;
     return {
         setters: [
             function (core_1_1) {
@@ -18,6 +18,9 @@ System.register(["@angular/core", "@angular/http", "./auth.http"], function (exp
             },
             function (http_1_1) {
                 http_1 = http_1_1;
+            },
+            function (Observable_1_1) {
+                Observable_1 = Observable_1_1;
             },
             function (auth_http_1_1) {
                 auth_http_1 = auth_http_1_1;
@@ -55,8 +58,16 @@ System.register(["@angular/core", "@angular/http", "./auth.http"], function (exp
                     });
                 };
                 AuthService.prototype.logout = function () {
-                    this.setAuth(null);
-                    return true;
+                    var _this = this;
+                    return this.http.post("api/Accounts/Logout", null)
+                        .map(function (response) {
+                        _this.setAuth(null);
+                        ;
+                        return true;
+                    })
+                        .catch(function (err) {
+                        return Observable_1.Observable.throw(err);
+                    });
                 };
                 // Converts a Json object to urlencoded format
                 AuthService.prototype.toUrlEncodedString = function (data) {
